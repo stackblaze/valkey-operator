@@ -66,7 +66,7 @@ func (r *SentinelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *SentinelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Sentinel{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 8}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: MaxConcurrentReconciles}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.Service{}).
 		Owns(&corev1.ConfigMap{}).

@@ -4,6 +4,9 @@ on:
   pull_request:
     branches-ignore:
       - dependabot/*
+      # stackblaze fork: PRs into the `stackblaze` branch use stackblaze-image.yaml
+      # (this pipeline needs upstream's GH_TOKEN / Coveralls secrets).
+      - stackblaze
 
 permissions:
   contents: read
@@ -19,7 +22,7 @@ jobs:
         go-version: '1.25'
 
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Install dependencies
       run: |
@@ -47,7 +50,7 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         ref: ${{ github.head_ref }}

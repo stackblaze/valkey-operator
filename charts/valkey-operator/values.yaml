@@ -72,6 +72,10 @@ securityContext:
     drop:
       - "ALL"
 
+## @param extraArgs Extra command-line arguments for the manager container
+## e.g. ["--max-concurrent-reconciles=3"]
+extraArgs: []
+
 ## @param terminationGracePeriodSeconds Termination grace period for the operator pod
 terminationGracePeriodSeconds: 10
 
@@ -136,6 +140,10 @@ serviceMonitor:
 ## These values are passed to the operator at startup and define the default images
 ## used when creating Valkey instances.
 operatorConfig:
+  ## @param operatorConfig.operatorImageName Untagged image repository the operator uses
+  ## for the per-instance helper/init container (operatorImageName annotation).
+  ## Empty keeps upstream behaviour (the operator image reference).
+  operatorImageName: ""
   ## @param operatorConfig.defaultRegistry Default image registry for Valkey images
   defaultRegistry: ""
   ## @param operatorConfig.valkeyImageName Default Valkey image name
