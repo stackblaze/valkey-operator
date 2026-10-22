@@ -190,7 +190,7 @@ func (r *FailoverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *FailoverReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Failover{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 8}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: MaxConcurrentReconciles}).
 		Owns(&v1alpha1.Sentinel{}).
 		Owns(&appsv1.StatefulSet{}).
 		Owns(&corev1.Service{}).

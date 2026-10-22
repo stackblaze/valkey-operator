@@ -17,7 +17,7 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: manager
         defaultRegistry: {{ .Values.operatorConfig.defaultRegistry | quote }}
-        operatorImageName: {{ include "valkey-operator.image" . | quote }}
+        operatorImageName: {{ .Values.operatorConfig.operatorImageName | default (include "valkey-operator.image" .) | quote }}
         operatorVersion: {{ .Chart.AppVersion | quote }}
         defaultExporterImageName: {{ .Values.operatorConfig.defaultExporterImageName | quote }}
         defaultExporterVersion: {{ .Values.operatorConfig.defaultExporterVersion | quote }}
@@ -57,6 +57,9 @@ spec:
         {{- end }}
         {{- if .Values.webhook.enabled }}
         - --webhook-cert-path={{ .Values.webhook.certPath }}
+        {{- end }}
+        {{- range .Values.extraArgs }}
+        - {{ . | quote }}
         {{- end }}
         env:
         - name: POD_NAME

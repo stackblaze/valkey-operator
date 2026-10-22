@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"os"
+	"strconv"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -87,6 +88,7 @@ func main() {
 	var secureMetrics bool
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
+	var maxConcurrentReconciles int
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -100,6 +102,9 @@ func main() {
 	flag.StringVar(&webhookCertKey, "webhook-cert-key", "tls.key", "The name of the webhook key file.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.IntVar(&maxConcurrentReconciles, "max-concurrent-reconciles", defaultMaxConcurrentReconciles(),
+		"Concurrent reconcile workers for the Cluster, Failover, Sentinel and User controllers. "+
+			"Falls back to the MAX_CONCURRENT_RECONCILES env var, then to 8.")
 	opts := zap.Options{
 		Development:     true,
 		StacktraceLevel: zapcore.FatalLevel,
@@ -109,6 +114,13 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
+	if maxConcurrentReconciles < 1 {
+		setupLog.Error(nil, "--max-concurrent-reconciles must be >= 1", "value", maxConcurrentReconciles)
+		os.Exit(1)
+	}
+	controller.MaxConcurrentReconciles = maxConcurrentReconciles
+	setupLog.Info("controller concurrency", "max-concurrent-reconciles", maxConcurrentReconciles)
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
@@ -285,4 +297,15 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+// defaultMaxConcurrentReconciles returns MAX_CONCURRENT_RECONCILES when it is set
+// to a positive integer, otherwise the package default (8, upstream behaviour).
+func defaultMaxConcurrentReconciles() int {
+	if v := os.Getenv("MAX_CONCURRENT_RECONCILES"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return n
+		}
+	}
+	return controller.MaxConcurrentReconciles
 }

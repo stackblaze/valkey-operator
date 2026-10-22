@@ -294,7 +294,7 @@ func (r *UserReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&v1alpha1.User{}).
 		Owns(&corev1.Secret{}).
 		WithEventFilter(generationChangedFilter()).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 8}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: MaxConcurrentReconciles}).
 		Complete(r)
 }
 
