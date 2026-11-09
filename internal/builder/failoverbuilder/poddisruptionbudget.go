@@ -25,8 +25,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// NewPodDisruptionBudgetForCR lets all but one Valkey pod go at a time. A
+// single pod has no replica to keep serving, so a budget of zero would only
+// block node drains forever; it may go (a restart on another node, same
+// volume) instead.
 func NewPodDisruptionBudgetForCR(rf *v1alpha1.Failover) *policyv1.PodDisruptionBudget {
-	maxUnavailable := intstr.FromInt(int(rf.Spec.Replicas) - 1)
+	maxUnavailable := intstr.FromInt(max(int(rf.Spec.Replicas)-1, 1))
 	selectors := GenerateSelectorLabels(rf.Name)
 	labels := GenerateCommonLabels(rf.Name)
 
